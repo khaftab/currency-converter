@@ -1,25 +1,17 @@
-import axios from "axios";
-const proxy = "https://cors-anywhere.herokuapp.com/";
-
 const fixer_api_key = "e2224f988ead83597e30e315435ec264";
-const fixer_api = `${proxy}http://data.fixer.io/api/latest?access_key=${fixer_api_key}`;
-const rest_countries_api = `${proxy}https://restcountries.eu/rest/v2/currency"`;
+const fixer_api = `http://data.fixer.io/api/latest?access_key=${fixer_api_key}`;
+const rest_countries_api = `https://restcountries.eu/rest/v2/currency`;
 
 // Fetch data about currencies
 
 const getExchangeRate = async (fromCurrency, toCurrency) => {
-  const { data } = await axios.get(fixer_api);
+  const {
+    data: { rates },
+  } = await axios.get(fixer_api);
 
-  //   const rates = await resonse
-  //     .json()
-  //     .then((data) => data.rates)
-  //     .catch((err) => err);
-
-  //   const euro = 1 / rates[fromCurrency];
-  //   const exchangeRate = euro * rates[toCurrency];
-  //   return exchangeRate;
-
-  console.log(data);
+  const euro = 1 / rates[fromCurrency];
+  const exchangeRate = euro * rates[toCurrency];
+  return exchangeRate;
 };
 
 getExchangeRate("USD", "AUD");
@@ -27,12 +19,31 @@ getExchangeRate("USD", "AUD");
 // Fetch data about country
 
 const getCountries = async (countryCode) => {
-  const response = await fetch(`${rest_countries_api}/${countryCode}`);
-  const data = await response.json().then((val) => val);
+  const { data } = await axios.get(`${rest_countries_api}/${countryCode}`);
 
-  return data.map(({ name }) => name);
+  return data.map(({ name }) => console.log(name));
 };
 
 getCountries("AUD");
 
 // Output
+
+const convertCurrency = (fromCurrency, toCurrency, amount) => {
+  fromCurrency = fromCurrency.toUpperCase();
+  toCurrency = toCurrency.toUpperCase();
+
+  const [exchangeRate, countries] = await Promise.all([
+   await getExchangeRate(fromCurrency, toCurrency),
+    await getCountries(toCurrency),
+   
+  ])
+
+//   const countries = await getCountries(toCurrency); 2s delay await just resolve the promise
+//   const exchangeRate = await getExchangeRate(fromCurrency, toCurrency) 2s delay so 2s is waste
+
+
+  const convertedAmount = (amount * exchangeRate).toFixed(2)
+  console.log(convertedAmount)
+};
+
+convertCurrency("usd", "aud", 20);
